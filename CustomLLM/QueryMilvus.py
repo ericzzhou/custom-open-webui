@@ -1,12 +1,15 @@
+import asyncio
+import re
 import time
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 import uuid
-from typing import Generator, Optional, List
+from typing import Dict, Generator, Optional, List, Union
 import logging
 from pymilvus import connections, Collection, CollectionSchema, FieldSchema, DataType
 import requests
+import json
 
 # 日志
 logging.basicConfig(
@@ -70,20 +73,24 @@ class Message(BaseModel):
 class ChatCompletionRequest(BaseModel):
     model: str
     messages: List[Message]
-    max_tokens: Optional[int] = None
     temperature: Optional[float] = 1.0
     top_p: Optional[float] = 1.0
     n: Optional[int] = 1
-    stop: Optional[List[str]] = None
+    stream: Optional[bool] = False
+    stop: Optional[Union[str, List[str]]] = None
+
+    max_tokens: Optional[int] = None
+
     presence_penalty: Optional[float] = 0.0
     frequency_penalty: Optional[float] = 0.0
+    logit_bias: Optional[Dict[str, float]] = None
+    user: Optional[str] = None
 
 
-class ChatCompletionChoice(BaseModel):
-    text: str
+class ChatCompletionResponseChoice(BaseModel):
     index: int
-    logprobs: Optional[dict] = None
-    finish_reason: str
+    message: Message
+    finish_reason: Optional[str] = None
 
 
 class Usage(BaseModel):
@@ -97,7 +104,7 @@ class ChatCompletionResponse(BaseModel):
     object: str = "chat.completion"
     created: int = Field(default_factory=lambda: int(time.time()))
     model: str
-    choices: List[ChatCompletionChoice]
+    choices: List[ChatCompletionResponseChoice]
     usage: Usage
     system_fingerprint: Optional[str] = None
 
@@ -169,6 +176,23 @@ def generate_response(prompt, model_id="mock-model-v1"):
     return " \n ".join(items)  # 或者使用其他合适的连接符号
 
 
+def format_response(response):
+    paragraphs = re.split(r"\n{2,}", response)
+    formatted_paragraphs = []
+    for para in paragraphs:
+        if "```" in para:
+            parts = para.split("```")
+            for i, part in enumerate(parts):
+                if i % 2 == 0:  # 代码块
+                    parts[i] = f"\n```\n{part.strip()}\n```\n"
+            para = "".join(parts)
+        else:
+            para = para.replace(". ", ".\n")
+
+        formatted_paragraphs.append(para.strip())
+    return "\n\n".join(formatted_paragraphs)
+
+
 def load_user_prompt(request: ChatCompletionRequest):
     user_message_content = None
     for message in request.messages:
@@ -177,13 +201,15 @@ def load_user_prompt(request: ChatCompletionRequest):
             break
     return user_message_content
 
+
 async def generate_stream_response(prompt, model_id):
     items = generate_response(prompt, model_id)
     for item in items:
         yield f"{item}\n"
 
+
 @app.post("/v1/chat/completions")
-async def chat(request: ChatCompletionRequest):
+async def chat_completions(request: ChatCompletionRequest):
 
     if not request.messages:
         raise HTTPException(status_code=400, detail="Messages are required")
@@ -194,27 +220,74 @@ async def chat(request: ChatCompletionRequest):
     model_id = request.model
     prompt = load_user_prompt(request)  # 使用消息列表的第一个消息的内容作为 prompt
     response = generate_response(prompt=prompt, model_id=model_id)
+    response = f"查询到以下商品: \n {response} \n"
 
     # 流式返回 begin
     # response_generator = generate_stream_response(prompt, model_id)
     # return StreamingResponse(response_generator, media_type="text/plain")
     # 流式返回 end
 
-    response = f"查询到以下商品: \n {response}"
-    return ChatCompletionResponse(
-        model=model_id,
-        choices=[
-            ChatCompletionChoice(
-                text=response,
-                index=0,
-                logprobs=None,
-                finish_reason="length",
-            )
-        ],
-        usage=Usage(
-            prompt_tokens=len(prompt), completion_tokens=0, total_tokens=len(prompt)
-        ),
-    )
+    forrmatted_response = format_response(response)
+    logger.info(f"格式化的搜索结果：{forrmatted_response}")
+
+    if request.stream:
+
+        async def stream_generator():
+            chunk_id = f"chatcmpl-{uuid.uuid4().hex}"
+            lines = forrmatted_response.split("\n")
+            for i, line in enumerate(lines):
+                chunk = {
+                    "id": chunk_id,
+                    "object": "chat.completion.chunk",
+                    "created": int(time.time()),
+                    "model": model_id,
+                    "choices": [
+                        {
+                            "index": 0,
+                            "delta": (
+                                {"content": line + "\n"}
+                                if i > 0
+                                else {"role": "assistant", "content": line}
+                            ),
+                            "finish_reason": None,
+                        }
+                    ],
+                }
+                yield f"data: {json.dumps(chunk)}\n\n"
+                await asyncio.sleep(0.05)
+
+            final_chunk = {
+                "id": chunk_id,
+                "object": "chat.completion.chunk",
+                "created": int(time.time()),
+                "model": model_id,
+                "choices": [{"index": 0, "delta": {}, "finish_reason": "stop"}],
+            }
+
+            yield f"data: {json.dumps(final_chunk)}\n\n"
+            yield "data: [DONE]\n\n"
+
+        return StreamingResponse(stream_generator(), media_type="text/event-stream")
+    else:
+
+        chatResponse = ChatCompletionResponse(
+            model=model_id,
+            choices=[
+                ChatCompletionResponseChoice(
+                    index=0,
+                    message=Message(role="assistant", content=forrmatted_response),
+                    finish_reason="stop",
+                )
+            ],
+            usage=Usage(
+                prompt_tokens=len(prompt.split()),
+                completion_tokens=len(forrmatted_response.split()),
+                total_tokens=len(prompt.split()) + len(forrmatted_response.split()),
+            ),
+        )
+
+        logger.info(f"发送响应：{chatResponse}")
+        return JSONResponse(content=chatResponse.dict())
 
 
 if __name__ == "__main__":
