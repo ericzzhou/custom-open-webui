@@ -114,13 +114,13 @@ async def list_models():
             "owned_by": "yami@eric",
             "description": "从 Milvus 读取数据",
         },
-        {
-            "id": "milvus:yami_image_embedding_vit",
-            "object": "model",
-            "created": current_time - 100000,
-            "owned_by": "yami@eric",
-            "description": "从 Milvus 读取数据",
-        },
+        # {
+        #     "id": "milvus:yami_image_embedding_vit",
+        #     "object": "model",
+        #     "created": current_time - 100000,
+        #     "owned_by": "yami@eric",
+        #     "description": "从 Milvus 读取数据",
+        # },
     ]
     return {"object": "list", "data": available_models}
 
@@ -177,6 +177,10 @@ def load_user_prompt(request: ChatCompletionRequest):
             break
     return user_message_content
 
+async def generate_stream_response(prompt, model_id):
+    items = generate_response(prompt, model_id)
+    for item in items:
+        yield f"{item}\n"
 
 @app.post("/v1/chat/completions")
 async def chat(request: ChatCompletionRequest):
@@ -191,6 +195,12 @@ async def chat(request: ChatCompletionRequest):
     prompt = load_user_prompt(request)  # 使用消息列表的第一个消息的内容作为 prompt
     response = generate_response(prompt=prompt, model_id=model_id)
 
+    # 流式返回 begin
+    # response_generator = generate_stream_response(prompt, model_id)
+    # return StreamingResponse(response_generator, media_type="text/plain")
+    # 流式返回 end
+
+    response = f"查询到以下商品: \n {response}"
     return ChatCompletionResponse(
         model=model_id,
         choices=[
