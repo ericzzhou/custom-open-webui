@@ -5,7 +5,6 @@ FROM python:3.12
 WORKDIR /app
 
 COPY ./requirements.txt /app/
-COPY ./QueryMilvus.py /app/
 # 安装 Python 依赖（这部分可以不需要，因为依赖文件会在宿主机上）
 # 这里如果需要，可以写在 RUN 指令中，具体视项目需求而定
 
@@ -13,4 +12,4 @@ COPY ./QueryMilvus.py /app/
 RUN pip3 install --no-cache-dir -r requirements.txt
 
 # 设置容器启动时运行的命令
-CMD ["python3", "QueryMilvus.py"]
+CMD ["python3", "app.py"]
