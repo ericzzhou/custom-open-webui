@@ -7,7 +7,7 @@ import time
 
 from fastapi.responses import JSONResponse, StreamingResponse
 
-from available_models import generate_available_models
+from available_models import AvailableModels, generate_available_models
 from modulesOpenAI.ChatCompletion import (
     ChatCompletionRequest,
     ChatCompletionResponse,
@@ -16,7 +16,10 @@ from modulesOpenAI.ChatCompletion import (
     Usage,
 )
 from modulesOpenAI.utils import format_response, load_user_prompt
-from services.query_milvus import query_items_from_milvus
+from services.elk_service import ELKService
+from services.graph_rag_service import GraphRagService
+from services.milvus_service import MilvusService
+from services.rag_machine_learning import RAGMachineLearningService
 
 # 日志
 logging.basicConfig(
@@ -28,10 +31,17 @@ logger = logging.getLogger(__name__)
 app = FastAPI()
 PORT = 8765
 
+
 async def generate_response_handler(prompt, model_id):
-    if model_id == "milvus:yami_test_item_zh_embedding":
-        return query_items_from_milvus(prompt, model_id)
-    return
+    if model_id == AvailableModels.QueryItemFromMilvus.value:
+        return MilvusService(model_id).run(prompt)
+    if model_id == AvailableModels.LogAnalysis.value:
+        return ELKService(model_id).run(prompt)
+    if model_id == AvailableModels.GraphRAGDemo.value:
+        # return RAGMachineLearningService(model_id).run(prompt)
+        return await GraphRagService(model_id).run(prompt)
+    return "no response"
+
 
 @app.get("/v1/models")
 async def list_models():

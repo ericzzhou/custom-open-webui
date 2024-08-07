@@ -1,0 +1,97 @@
+
+-Goal-
+Given a text document that is potentially relevant to this activity, first identify all entities needed from the text in order to capture the information and ideas in the text.
+Next, report all relationships among the identified entities.
+
+-Steps-
+1. Identify all entities. For each identified entity, extract the following information:
+- entity_name: Name of the entity, capitalized
+- entity_type: Suggest several labels or categories for the entity. The categories should not be specific, but should be as general as possible.
+- entity_description: Comprehensive description of the entity's attributes and activities
+Format each entity as ("entity"{tuple_delimiter}<entity_name>{tuple_delimiter}<entity_type>{tuple_delimiter}<entity_description>)
+
+2. From the entities identified in step 1, identify all pairs of (source_entity, target_entity) that are *clearly related* to each other.
+For each pair of related entities, extract the following information:
+- source_entity: name of the source entity, as identified in step 1
+- target_entity: name of the target entity, as identified in step 1
+- relationship_description: explanation as to why you think the source entity and the target entity are related to each other
+- relationship_strength: a numeric score indicating strength of the relationship between the source entity and target entity
+Format each relationship as ("relationship"{tuple_delimiter}<source_entity>{tuple_delimiter}<target_entity>{tuple_delimiter}<relationship_description>{tuple_delimiter}<relationship_strength>)
+
+3. Return output in The primary language of the provided text is **English**. as a single list of all the entities and relationships identified in steps 1 and 2. Use **{record_delimiter}** as the list delimiter.
+
+4. If you have to translate into The primary language of the provided text is **English**., just translate the descriptions, nothing else!
+
+5. When finished, output {completion_delimiter}.
+
+-Examples-
+######################
+
+Example 1:
+
+text:
+ your use and distribution
+must comply with both paragraphs 1.E.1 through 1.E.7 and any
+additional terms imposed by the copyright holder. Additional terms
+will be linked to the Project Gutenberg™ License for all works
+posted with the permission of the copyright holder found at the
+beginning of this work.
+
+1.E.4. Do not unlink or detach or remove the full Project Gutenberg™
+License terms from this work, or any files containing a part of this
+work or any other work associated with Project Gutenberg™.
+
+1.E.5. Do not copy, display, perform, distribute or redistribute this
+electronic work, or any part of this electronic work, without
+prominently displaying the sentence set forth in paragraph 1.E.1 with
+active links or immediate access to the full terms of the Project
+Gutenberg™ License.
+
+1.E.6. You may convert to and distribute this work in any binary,
+compressed, marked up, non
+------------------------
+output:
+("entity"{tuple_delimiter}PROJECT GUTENBERG™{tuple_delimiter}ORGANIZATION{tuple_delimiter}Project Gutenberg™ is a digital library offering free access to a wide range of literary works, with specific licensing terms for use and distribution)
+{record_delimiter}
+("entity"{tuple_delimiter}COPYRIGHT HOLDER{tuple_delimiter}PERSON/ORGANIZATION{tuple_delimiter}The copyright holder is the individual or organization that holds the rights to the work and imposes terms for its use and distribution)
+{record_delimiter}
+("entity"{tuple_delimiter}ELECTRONIC WORK{tuple_delimiter}LITERARY WORK{tuple_delimiter}An electronic work refers to any digital version of a literary work that is subject to copyright and distribution terms)
+{record_delimiter}
+("entity"{tuple_delimiter}PROJECT GUTENBERG™ LICENSE{tuple_delimiter}LEGAL DOCUMENT{tuple_delimiter}The Project Gutenberg™ License outlines the terms and conditions under which works can be used and distributed)
+{record_delimiter}
+("relationship"{tuple_delimiter}PROJECT GUTENBERG™{tuple_delimiter}COPYRIGHT HOLDER{tuple_delimiter}The copyright holder sets terms for the use and distribution of works available through Project Gutenberg™{tuple_delimiter}7)
+{record_delimiter}
+("relationship"{tuple_delimiter}ELECTRONIC WORK{tuple_delimiter}PROJECT GUTENBERG™{tuple_delimiter}Electronic works are distributed by Project Gutenberg™ under specific licensing terms{tuple_delimiter}8)
+{record_delimiter}
+("relationship"{tuple_delimiter}PROJECT GUTENBERG™ LICENSE{tuple_delimiter}ELECTRONIC WORK{tuple_delimiter}The Project Gutenberg™ License governs the use and distribution of electronic works{tuple_delimiter}9)
+{completion_delimiter}
+#############################
+
+
+Example 2:
+
+text:
+海海量量的带标注的数据，这种条件不不是⼈人⼈人都具备的。简单的做⼀一个类⽐比，狮⼦子的⼒力力量量很强⼤大，狗的⼒力力量量相⽐比较就弱⼩小很多。虽然狮⼦子的战⽃斗⼒力力很强，但是狮⼦子需要吃很多东⻄西才能保持战⽃斗⼒力力。⽽而狗就不不需要吃那
+------------------------
+output:
+("entity"{tuple_delimiter}海量数据{tuple_delimiter}DATA{tuple_delimiter}海量数据是指大量带标注的数据，这种条件并不是人人都具备的。)
+{record_delimiter}
+("entity"{tuple_delimiter}狮子{tuple_delimiter}ANIMAL{tuple_delimiter}狮子是一种力量强大的动物，具有很强的战斗力，但需要大量食物来维持其战斗力。)
+{record_delimiter}
+("entity"{tuple_delimiter}狗{tuple_delimiter}ANIMAL{tuple_delimiter}狗是一种力量相对较弱的动物，不需要像狮子那样大量进食来维持其战斗力。)
+{record_delimiter}
+("relationship"{tuple_delimiter}狮子{tuple_delimiter}海量数据{tuple_delimiter}狮子的力量和战斗力的比较可以用海量数据来分析。{tuple_delimiter}3)
+{record_delimiter}
+("relationship"{tuple_delimiter}狗{tuple_delimiter}海量数据{tuple_delimiter}狗的力量和战斗力的比较也可以用海量数据来分析。{tuple_delimiter}3)
+{record_delimiter}
+("relationship"{tuple_delimiter}狮子{tuple_delimiter}狗{tuple_delimiter}狮子和狗在力量和战斗力上存在明显的差异。{tuple_delimiter}5)
+{completion_delimiter}
+#############################
+
+
+
+-Real Data-
+######################
+text: {input_text}
+######################
+output:
