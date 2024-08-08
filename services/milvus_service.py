@@ -1,12 +1,12 @@
 # 模拟的聊天功能
-from pymilvus import Collection, connections
+# from pymilvus import Collection, connections
 import requests
 
 
 class MilvusService:
     def __init__(self, model_id):
         self.model_id = model_id
-        connections.connect(alias="default", host="44.236.217.101", port="19530")
+        # connections.connect(alias="default", host="44.236.217.101", port="19530")
 
     def get_vector_embedding(self, keyword):
         # 定义请求的 URL 和参数
@@ -47,6 +47,7 @@ class MilvusService:
         return embedding_floats
 
     def run(self, prompt):
+        return f"因 pymilvus 和 graphrag 依赖的库 environs 存在版本冲突，此功能作废：graphrag 需要 environs 版本在 11.0.0 到 12.0.0 之间，而 pymilvus 需要 environs 版本在 9.5.0 或更低版本。"  # 或者使用其他合适的连接符号
         milvus_collection_name = self.model_id.split(":")[1].strip()
 
         db = Collection(name=milvus_collection_name)

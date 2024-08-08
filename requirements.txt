@@ -98,7 +98,6 @@ pydantic_core==2.20.1
 Pygments==2.18.0
 PyJWT==2.9.0
 pylance==0.15.0
-pymilvus==2.4.4
 PyMuPDF==1.24.9
 PyMuPDFb==1.24.9
 pynndescent==0.5.13
@@ -108,6 +107,7 @@ pypdfium2==4.30.0
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
 pytz==2024.1
+pywin32==306
 PyYAML==6.0.2
 ratelimiter==1.2.0.post0
 referencing==0.35.1

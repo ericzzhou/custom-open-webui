@@ -9,7 +9,7 @@ class GraphRagService:
 
     async def run(self, prompt):
 
-        print(f"prompt:{prompt},从elk里查询到数据")
+        print(f"prompt:{prompt},从 graph rag查询数据")
         global_search_engine = GraphRagGlobalSearchEngine()
         local_search_engine = GraphRagLocalSearchEngine()
 
