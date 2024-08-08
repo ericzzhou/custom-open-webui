@@ -20,7 +20,7 @@ RUN pip3 install --no-cache-dir -r requirements.txt
 EXPOSE 8765
 
 # 定义数据卷
-VOLUME ["/app/inputs"]
+VOLUME ["/app/inputs","/app/input"]
 
 # 设置容器启动时运行的命令
 CMD ["python3", "app.py"]
