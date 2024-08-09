@@ -39,10 +39,14 @@ async def generate_response_handler(prompt, model_id):
         return ELKService(model_id).run(prompt)
     if model_id == AvailableModels.GraphRAGFiction.value:
         return await GraphRagService(model_id).run_Fictio(prompt)
-    if model_id == AvailableModels.GraphRAGYamiCustomerService.value:
-        return await GraphRagService(model_id).run_YamiCS(prompt)
-    if model_id == AvailableModels.GraphRAGYamiCustomerServiceTuning.value:
-        return await GraphRagService(model_id).run_YamiCSTuning(prompt)
+    
+    if "知识库:" in model_id:
+        return await GraphRagService(model_id).runDynamicKnowledgeBase(prompt)
+        
+    # if model_id == AvailableModels.GraphRAGYamiCustomerService.value:
+    #     return await GraphRagService(model_id).run_YamiCS(prompt)
+    # if model_id == AvailableModels.GraphRAGYamiCustomerServiceTuning.value:
+    #     return await GraphRagService(model_id).run_YamiCSTuning(prompt)
     return "no response"
 
 
