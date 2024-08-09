@@ -18,10 +18,12 @@ class GraphRagService:
         global_result = await global_search_engine.search(prompt)
 
         result = f"""
-        <h2>Global Search</h2>
+        # 🌏🌏🌏🌏🌏🌏 Global Search
+
         {global_result}
 
-        <h2>Local Search</h2>
+        # 🔍🔍🔍🔍🔍🔍 Local Search
+        
         {local_result.response}
 """
         return result

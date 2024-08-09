@@ -21,10 +21,9 @@ def format_response(response):
 
 
 def load_user_prompt(request: ChatCompletionRequest):
-    user_message_content = None
+    last_user_message_content = None
     for message in request.messages:
         if message.role == "user":
-            user_message_content = message.content
-            break
-    return user_message_content
+            last_user_message_content = message.content
+    return last_user_message_content
 
