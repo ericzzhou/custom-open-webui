@@ -29,4 +29,5 @@ Thumbs.db
 # 忽略任何其他不需要复制到镜像中的文件或目录
 node_modules/
 cache/
-inputs/artifacts/*
+inputs/*/artifacts/*
+inputs/*/reports/*

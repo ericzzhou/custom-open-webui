@@ -165,3 +165,5 @@ cache/
 
 inputs/artifacts/
 inputs/reports/
+inputs/*/artifacts/*
+inputs/*/reports/*
