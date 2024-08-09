@@ -167,3 +167,5 @@ inputs/artifacts/
 inputs/reports/
 inputs/*/artifacts/*
 inputs/*/reports/*
+.data/
+input/*

@@ -31,3 +31,5 @@ node_modules/
 cache/
 inputs/*/artifacts/*
 inputs/*/reports/*
+.data/
+input/*
